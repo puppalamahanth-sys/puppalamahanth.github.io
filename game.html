@@ -1,18 +1,31 @@
+
 <body style="background-color: lightgreen; text-align: center;">
 <h1>Guess the Number</h1>
 <p>I am thinking of a number from 1 to 100.</p>
 <input id="guess" type="number">
 <button onclick="check()">Guess</button>
+<button onclick="newGame()">New game</button>
 <p id="result"></p>
+<p id="tries">Tries: 0</p>
 <a href="index.html">Back to home</a>
 <script>
 let secret = Math.floor(Math.random() * 100) + 1;
+let tries = 0;
 function check() {
   let g = Number(document.getElementById("guess").value);
   let r = document.getElementById("result");
+  tries++;
+  document.getElementById("tries").innerText = "Tries: " + tries;
   if (g === secret) { r.innerText = "Correct! You win!"; }
   else if (g < secret) { r.innerText = "Too low, try higher."; }
   else { r.innerText = "Too high, try lower."; }
+}
+function newGame() {
+  secret = Math.floor(Math.random() * 100) + 1;
+  tries = 0;
+  document.getElementById("tries").innerText = "Tries: 0";
+  document.getElementById("result").innerText = "";
+  document.getElementById("guess").value = "";
 }
 </script>
 </body>
