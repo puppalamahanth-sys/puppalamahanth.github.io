@@ -16,7 +16,10 @@ function check() {
   let r = document.getElementById("result");
   tries++;
   document.getElementById("tries").innerText = "Tries: " + tries;
-  if (g === secret) { r.innerText = "Correct! You win!"; }
+  if (g === secret) {
+  if (tries <= 5) { r.innerText = "Amazing! You won in " + tries + " tries!"; }
+  else { r.innerText = "Correct! You win!"; }
+  }
   else if (g < secret) { r.innerText = "Too low, try higher."; }
   else { r.innerText = "Too high, try lower."; }
 }
