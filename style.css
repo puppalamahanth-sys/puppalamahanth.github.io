@@ -1,7 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
-body { font-family: 'Poppins', sans-serif; }
-
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+  background: linear-gradient(135deg, #7f9cf5, #c3a6f5);
+  min-height: 100vh;
+}
 .navbar {
   background: #2c3e8f;
   display: flex;
@@ -20,13 +25,51 @@ body { font-family: 'Poppins', sans-serif; }
 }
 .navbar a:hover { background: white; color: #2c3e8f; }
 
+.card {
+  background: white;
+  max-width: 400px;
+  margin: 30px 15px;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+@media (min-width: 460px) {
+  .card { margin: 30px auto; }
+}
+h1 { color: #2c3e8f; margin-top: 0; }
+p { color: #333; }
+
+button {
+  background: #2c3e8f;
+  color: white;
+  border: none;
+  padding: 12px 22px;
+  margin: 4px;
+  font-size: 16px;
+  font-family: inherit;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+button:hover { transform: translateY(-2px); opacity: 0.9; }
+
+input {
+  width: 80%;
+  padding: 12px;
+  margin: 6px 0;
+  font-size: 16px;
+  font-family: inherit;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  text-align: center;
+}
+input:focus { outline: none; border-color: #2c3e8f; }
+
+.result { font-size: 18px; font-weight: 600; color: #2c3e8f; min-height: 28px; }
+
 .footer {
   text-align: center;
   padding: 20px;
-  margin-top: 30px;
-  color: #666;
+  color: #444;
   font-size: 13px;
 }
-
-button { transition: 0.2s; cursor: pointer; }
-button:hover { transform: translateY(-2px); opacity: 0.9; }
