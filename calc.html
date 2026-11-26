@@ -1,15 +1,33 @@
-<body style="background-color: lightyellow; text-align: center;">
-<h1>Calculator</h1>
-<input id="a" type="number" placeholder="First number">
-<br><br>
-<input id="b" type="number" placeholder="Second number">
-<br><br>
-<button onclick="calc('+')">+</button>
-<button onclick="calc('-')">-</button>
-<button onclick="calc('*')">x</button>
-<button onclick="calc('/')">/</button>
-<h2 id="answer">Answer: </h2>
-<a href="index.html">Back to home</a>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculator | Mahanth</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="navbar">
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="game.html">Game</a>
+  <a href="rps.html">RPS</a>
+  <a href="calc.html">Calculator</a>
+</div>
+
+<div class="card">
+  <h1>🧮 Calculator</h1>
+  <input id="a" type="number" placeholder="First number">
+  <input id="b" type="number" placeholder="Second number">
+  <br>
+  <button onclick="calc('+')">+</button>
+  <button onclick="calc('-')">-</button>
+  <button onclick="calc('*')">x</button>
+  <button onclick="calc('/')">/</button>
+  <p class="result" id="answer">Answer: </p>
+</div>
+
 <script>
 function calc(op) {
   let a = Number(document.getElementById("a").value);
@@ -22,4 +40,8 @@ function calc(op) {
   document.getElementById("answer").innerText = "Answer: " + r;
 }
 </script>
+
+<div class="footer">© 2026 Mahanth</div>
+
 </body>
+</html>
