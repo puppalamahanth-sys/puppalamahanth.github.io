@@ -1,13 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guess the Number | Mahanth</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-<body style="background-color: lightgreen; text-align: center;">
-<h1>Guess the Number</h1>
-<p>I am thinking of a number from 1 to 100.</p>
-<input id="guess" type="number">
-<button onclick="check()">Guess</button>
-<button onclick="newGame()">New game</button>
-<p id="result"></p>
-<p id="tries">Tries: 0</p>
-<a href="index.html">Back to home</a>
+<div class="navbar">
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="game.html">Game</a>
+  <a href="rps.html">RPS</a>
+  <a href="calc.html">Calculator</a>
+</div>
+
+<div class="card">
+  <h1>🎯 Guess the Number</h1>
+  <p>I am thinking of a number from 1 to 100.</p>
+  <input id="guess" type="number" placeholder="Your guess">
+  <br>
+  <button onclick="check()">Guess</button>
+  <button onclick="newGame()">New game</button>
+  <p class="result" id="result"></p>
+  <p id="tries">Tries: 0</p>
+</div>
+
 <script>
 let secret = Math.floor(Math.random() * 100) + 1;
 let tries = 0;
@@ -17,8 +36,8 @@ function check() {
   tries++;
   document.getElementById("tries").innerText = "Tries: " + tries;
   if (g === secret) {
-  if (tries <= 5) { r.innerText = "Amazing! You won in " + tries + " tries!"; }
-  else { r.innerText = "Correct! You win!"; }
+    if (tries <= 5) { r.innerText = "Amazing! You won in " + tries + " tries!"; }
+    else { r.innerText = "Correct! You win!"; }
   }
   else if (g < secret) { r.innerText = "Too low, try higher."; }
   else { r.innerText = "Too high, try lower."; }
@@ -31,4 +50,8 @@ function newGame() {
   document.getElementById("guess").value = "";
 }
 </script>
+
+<div class="footer">© 2026 Mahanth</div>
+
 </body>
+</html>
