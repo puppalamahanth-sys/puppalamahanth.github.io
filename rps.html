@@ -1,11 +1,30 @@
-<body style="background-color: lavender; text-align: center;">
-<h1>Rock Paper Scissors</h1>
-<button onclick="play('rock')">Rock</button>
-<button onclick="play('paper')">Paper</button>
-<button onclick="play('scissors')">Scissors</button>
-<p id="result"></p>
-<p id="score">You: 0 | Computer: 0</p>
-<a href="index.html">Back to home</a>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rock Paper Scissors | Mahanth</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="navbar">
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="game.html">Game</a>
+  <a href="rps.html">RPS</a>
+  <a href="calc.html">Calculator</a>
+</div>
+
+<div class="card">
+  <h1>✊ Rock Paper Scissors</h1>
+  <button onclick="play('rock')">Rock</button>
+  <button onclick="play('paper')">Paper</button>
+  <button onclick="play('scissors')">Scissors</button>
+  <p class="result" id="result"></p>
+  <p id="score">You: 0 | Computer: 0</p>
+</div>
+
 <script>
 let you = 0;
 let comp = 0;
@@ -14,10 +33,18 @@ function play(choice) {
   let pick = options[Math.floor(Math.random() * 3)];
   let text = "You: " + choice + ", Computer: " + pick + ". ";
   if (choice === pick) { text += "Draw."; }
-  else if ((choice === "rock" && pick === "scissors") || (choice === "paper" && pick === "rock") || (choice === "scissors" && pick === "paper")) { you++; text += "You win!"; }
+  else if ((choice === "rock" && pick === "scissors") ||
+           (choice === "paper" && pick === "rock") ||
+           (choice === "scissors" && pick === "paper")) {
+    you++; text += "You win!";
+  }
   else { comp++; text += "Computer wins."; }
   document.getElementById("result").innerText = text;
   document.getElementById("score").innerText = "You: " + you + " | Computer: " + comp;
 }
 </script>
+
+<div class="footer">© 2026 Mahanth</div>
+
 </body>
+</html>
