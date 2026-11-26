@@ -1,28 +1,61 @@
+<!DOCTYPE html>
+<html>
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mahanth</title>
+<link rel="stylesheet" href="style.css">
 <style>
-body { margin: 0; padding: 20px; font-family: Arial, sans-serif; text-align: center; background: linear-gradient(135deg, #74ebd5, #9face6); min-height: 100vh; }
-.card { background: white; max-width: 400px; margin: 30px auto; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+body {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  background: linear-gradient(135deg, #7f9cf5, #c3a6f5);
+  min-height: 100vh;
+}
+.card {
+  background: white;
+  max-width: 400px;
+  margin: 30px auto;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
 h1 { color: #2c3e8f; }
-button { background: #2c3e8f; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 25px; }
-a { display: block; margin: 12px 0; padding: 12px; background: #eef1ff; color: #2c3e8f; text-decoration: none; border-radius: 12px; font-weight: bold; }
+button {
+  background: #2c3e8f;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 25px;
+}
 </style>
 </head>
 <body>
-<div class="card">
-<p style="font-size: 60px; margin: 0;">🦄</p>
-<h1>Hello, I am Mahanth</h1>
-<p id="msg">This is my first website.</p>
-<button onclick="changeText()">Click me</button>
-<br><br>
-<a href="about.html">About me</a>
-<a href="game.html">Play the game</a>
-<a href="rps.html">Play Rock Paper Scissors</a>
-<a href="calc.html">Calculator</a>
+
+<div class="navbar">
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="game.html">Game</a>
+  <a href="rps.html">RPS</a>
+  <a href="calc.html">Calculator</a>
 </div>
+
+<div class="card">
+  <p style="font-size: 60px; margin: 0;">🦄</p>
+  <h1>Hello, I am Mahanth</h1>
+  <p id="msg">This is my first website.</p>
+  <button onclick="changeText()">Click me</button>
+</div>
+
 <script>
 function changeText() {
   document.getElementById("msg").innerText = "You clicked the button!";
 }
 </script>
+
+<div class="footer">© 2026 Mahanth</div>
+
 </body>
+</html>
