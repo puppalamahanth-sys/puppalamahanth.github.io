@@ -1,81 +1,125 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>To-Do List | Mahanth</title>
 <link rel="stylesheet" href="style.css">
-<style>
-ul { list-style: none; padding: 0; margin: 15px 0 0; }
-li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #eef1ff;
-  padding: 10px 14px;
-  margin: 8px 0;
-  border-radius: 12px;
-  text-align: left;
-}
-li span { cursor: pointer; flex: 1; }
-li.done span { text-decoration: line-through; color: #888; }
-li button { padding: 6px 12px; font-size: 14px; background: #c0392b; }
-</style>
 </head>
 <body>
 
-<div class="navbar">
-  <a href="index.html">Home</a>
-  <a href="about.html">About</a>
-  <a href="game.html">Game</a>
-  <a href="rps.html">RPS</a>
-  <a href="calc.html">Calculator</a>
-  <a href="todo.html">To-Do</a>
-</div>
+<nav class="navbar">
+  <a class="brand" href="index.html">Mahanth</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="game.html">Game</a>
+    <a href="rps.html">RPS</a>
+    <a href="calc.html">Calculator</a>
+    <a href="todo.html" class="active">To-Do</a>
+  </div>
+</nav>
 
-<div class="card">
-  <h1>📝 To-Do List</h1>
-  <input id="task" type="text" placeholder="Add a task">
-  <br>
-  <button onclick="addTask()">Add</button>
-  <ul id="list"></ul>
-</div>
+<main>
+  <section class="card">
+    <h1>📝 To-Do List</h1>
+    <p>Your tasks stay saved on this device.</p>
+
+    <form class="todo-form" onsubmit="addTask(event)">
+      <input id="task" type="text" placeholder="What do you need to do?" maxlength="100" autocomplete="off">
+      <button type="submit">Add</button>
+    </form>
+
+    <ul class="todo-list" id="list"></ul>
+
+    <div class="todo-footer" id="footer">
+      <span id="count"></span>
+      <button class="link-btn" onclick="clearDone()">Clear completed</button>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">© 2026 Mahanth · Built with HTML, CSS &amp; JavaScript</footer>
 
 <script>
-let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let tasks = loadTasks();
+
+function loadTasks() {
+  try {
+    return JSON.parse(localStorage.getItem("tasks")) || [];
+  } catch (e) {
+    return [];
+  }
+}
 
 function save() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 }
-function show() {
-  let list = document.getElementById("list");
+
+function render() {
+  const list = document.getElementById("list");
   list.innerHTML = "";
-  for (let i = 0; i < tasks.length; i++) {
-    let li = document.createElement("li");
-    if (tasks[i].done) { li.className = "done"; }
-    let s = document.createElement("span");
-    s.innerText = tasks[i].text;
-    s.onclick = function () { tasks[i].done = !tasks[i].done; save(); show(); };
-    let b = document.createElement("button");
-    b.innerText = "X";
-    b.onclick = function () { tasks.splice(i, 1); save(); show(); };
-    li.appendChild(s);
-    li.appendChild(b);
-    list.appendChild(li);
+
+  if (tasks.length === 0) {
+    list.innerHTML = '<li class="empty">No tasks yet. Add one above! ✨</li>';
   }
+
+  tasks.forEach(function (task, i) {
+    const li = document.createElement("li");
+    if (task.done) li.className = "done";
+
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = task.done;
+    box.setAttribute("aria-label", "Mark as done");
+    box.onchange = function () {
+      tasks[i].done = box.checked;
+      save();
+      render();
+    };
+
+    const text = document.createElement("span");
+    text.className = "text";
+    text.textContent = task.text;
+
+    const del = document.createElement("button");
+    del.className = "delete";
+    del.textContent = "✕";
+    del.setAttribute("aria-label", "Delete task");
+    del.onclick = function () {
+      tasks.splice(i, 1);
+      save();
+      render();
+    };
+
+    li.append(box, text, del);
+    list.appendChild(li);
+  });
+
+  const left = tasks.filter(function (t) { return !t.done; }).length;
+  document.getElementById("count").textContent = left + (left === 1 ? " task left" : " tasks left");
+  document.getElementById("footer").style.display = tasks.length ? "flex" : "none";
 }
-function addTask() {
-  let box = document.getElementById("task");
-  if (box.value.trim() === "") { return; }
-  tasks.push({ text: box.value.trim(), done: false });
+
+function addTask(e) {
+  e.preventDefault();
+  const box = document.getElementById("task");
+  const text = box.value.trim();
+  if (text === "") return;
+  tasks.push({ text: text, done: false });
   box.value = "";
   save();
-  show();
+  render();
 }
-show();
-</script>
 
-<div class="footer">© 2026 Mahanth</div>
+function clearDone() {
+  tasks = tasks.filter(function (t) { return !t.done; });
+  save();
+  render();
+}
+
+render();
+</script>
 
 </body>
 </html>
