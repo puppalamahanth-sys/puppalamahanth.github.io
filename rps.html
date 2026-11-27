@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,43 +8,101 @@
 </head>
 <body>
 
-<div class="navbar">
-  <a href="index.html">Home</a>
-  <a href="about.html">About</a>
-  <a href="game.html">Game</a>
-  <a href="rps.html">RPS</a>
-  <a href="calc.html">Calculator</a>
-</div>
+<nav class="navbar">
+  <a class="brand" href="index.html">Mahanth</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="game.html">Game</a>
+    <a href="rps.html" class="active">RPS</a>
+    <a href="calc.html">Calculator</a>
+    <a href="todo.html">To-Do</a>
+  </div>
+</nav>
 
-<div class="card">
-  <h1>✊ Rock Paper Scissors</h1>
-  <button onclick="play('rock')">Rock</button>
-  <button onclick="play('paper')">Paper</button>
-  <button onclick="play('scissors')">Scissors</button>
-  <p class="result" id="result"></p>
-  <p id="score">You: 0 | Computer: 0</p>
-</div>
+<main>
+  <section class="card">
+    <h1>✊ Rock Paper Scissors</h1>
+    <p>Pick one. The computer picks at the same time.</p>
+
+    <div class="choices">
+      <button class="choice" onclick="play('rock')">✊<span>Rock</span></button>
+      <button class="choice" onclick="play('paper')">✋<span>Paper</span></button>
+      <button class="choice" onclick="play('scissors')">✌️<span>Scissors</span></button>
+    </div>
+
+    <div class="arena">
+      <div><div class="hand" id="youHand">❔</div><small>You</small></div>
+      <div class="vs">VS</div>
+      <div><div class="hand" id="compHand">❔</div><small>Computer</small></div>
+    </div>
+
+    <p class="result" id="result">Pick one to start!</p>
+
+    <div class="stats">
+      <div class="stat"><strong id="youScore">0</strong><span>You</span></div>
+      <div class="stat"><strong id="drawScore">0</strong><span>Draws</span></div>
+      <div class="stat"><strong id="compScore">0</strong><span>Computer</span></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="secondary" onclick="resetScore()">Reset score</button>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">© 2026 Mahanth · Built with HTML, CSS &amp; JavaScript</footer>
 
 <script>
-let you = 0;
-let comp = 0;
+const emoji = { rock: "✊", paper: "✋", scissors: "✌️" };
+const beats = { rock: "scissors", paper: "rock", scissors: "paper" };
+let score = { you: 0, comp: 0, draw: 0 };
+
 function play(choice) {
-  let options = ["rock", "paper", "scissors"];
-  let pick = options[Math.floor(Math.random() * 3)];
-  let text = "You: " + choice + ", Computer: " + pick + ". ";
-  if (choice === pick) { text += "Draw."; }
-  else if ((choice === "rock" && pick === "scissors") ||
-           (choice === "paper" && pick === "rock") ||
-           (choice === "scissors" && pick === "paper")) {
-    you++; text += "You win!";
+  const options = Object.keys(emoji);
+  const pick = options[Math.floor(Math.random() * options.length)];
+  const result = document.getElementById("result");
+
+  document.getElementById("youHand").textContent = emoji[choice];
+  document.getElementById("compHand").textContent = emoji[pick];
+
+  if (choice === pick) {
+    score.draw++;
+    result.textContent = "It's a draw!";
+    result.className = "result";
+  } else if (beats[choice] === pick) {
+    score.you++;
+    result.textContent = capitalize(choice) + " beats " + pick + ". You win! 🎉";
+    result.className = "result win";
+  } else {
+    score.comp++;
+    result.textContent = capitalize(pick) + " beats " + choice + ". Computer wins.";
+    result.className = "result lose";
   }
-  else { comp++; text += "Computer wins."; }
-  document.getElementById("result").innerText = text;
-  document.getElementById("score").innerText = "You: " + you + " | Computer: " + comp;
+
+  showScore();
+}
+
+function capitalize(word) {
+  return word[0].toUpperCase() + word.slice(1);
+}
+
+function showScore() {
+  document.getElementById("youScore").textContent = score.you;
+  document.getElementById("drawScore").textContent = score.draw;
+  document.getElementById("compScore").textContent = score.comp;
+}
+
+function resetScore() {
+  score = { you: 0, comp: 0, draw: 0 };
+  document.getElementById("youHand").textContent = "❔";
+  document.getElementById("compHand").textContent = "❔";
+  const result = document.getElementById("result");
+  result.textContent = "Pick one to start!";
+  result.className = "result";
+  showScore();
 }
 </script>
-
-<div class="footer">© 2026 Mahanth</div>
 
 </body>
 </html>
