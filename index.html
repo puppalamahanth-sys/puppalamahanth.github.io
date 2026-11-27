@@ -1,69 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mahanth</title>
+<meta name="description" content="Mahanth's website: a first-year ECE student learning to build things on the web.">
+<title>Mahanth | Home</title>
 <link rel="stylesheet" href="style.css">
-<style>
-body {
-  margin: 0;
-  padding: 0;
-  text-align: center;
-  background: linear-gradient(135deg, #7f9cf5, #c3a6f5);
-  min-height: 100vh;
-}
-.card {
-  background: white;
-  max-width: 400px;
-  margin: 30px auto;
-  padding: 25px;
-  border-radius: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-h1 { color: #2c3e8f; }
-button {
-  background: #2c3e8f;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  font-size: 16px;
-  border-radius: 25px;
-}
-</style>
 </head>
 <body>
 
-<div class="navbar">
-  <a href="index.html">Home</a>
-  <a href="about.html">About</a>
-  <a href="game.html">Game</a>
-  <a href="rps.html">RPS</a>
-  <a href="calc.html">Calculator</a>
-  <a href="todo.html">To-Do</a>
-</div>
-
-<div class="card">
-  <p style="font-size: 60px; margin: 0;">🦄</p>
-  <h1>Hello, I am Mahanth</h1>
-  <p id="msg">This is my first website.</p>
-  <button onclick="changeText()">Click me</button>
-</div>
-  <div class="projects">
-  <h2>My Projects</h2>
-  <a class="project" href="game.html">🎯 Guess the Number<p>Guess my secret number in few tries.</p></a>
-  <a class="project" href="rps.html">✊ Rock Paper Scissors<p>Play against the computer.</p></a>
-  <a class="project" href="calc.html">🧮 Calculator<p>Add, subtract, multiply, divide.</p></a>
-  <a class="project" href="todo.html">📝 To-Do List<p>Add tasks. They stay saved after refresh.</p></a>
+<nav class="navbar">
+  <a class="brand" href="index.html">Mahanth</a>
+  <div class="nav-links">
+    <a href="index.html" class="active">Home</a>
+    <a href="about.html">About</a>
+    <a href="game.html">Game</a>
+    <a href="rps.html">RPS</a>
+    <a href="calc.html">Calculator</a>
+    <a href="todo.html">To-Do</a>
   </div>
+</nav>
 
-<script>
-function changeText() {
-  document.getElementById("msg").innerText = "You clicked the button!";
-}
-</script>
+<main class="wide">
+  <section class="card">
+    <div class="avatar">👨‍💻</div>
+    <h1>Hi, I'm Mahanth</h1>
+    <p>First-year ECE student learning to build things on the web, on my way to becoming an AI engineer.</p>
+    <div class="tags">
+      <span class="tag">HTML</span>
+      <span class="tag">CSS</span>
+      <span class="tag">JavaScript</span>
+      <span class="tag">Learning AI</span>
+    </div>
+    <div class="btn-row">
+      <a class="btn" href="#projects">See my projects</a>
+      <a class="btn btn-outline" href="about.html">About me</a>
+    </div>
+  </section>
 
-<div class="footer">© 2026 Mahanth</div>
+  <h2 class="section-title" id="projects">My Projects</h2>
+  <div class="projects">
+    <a class="project" href="game.html">
+      <div class="icon">🎯</div>
+      <h3>Guess the Number</h3>
+      <p>Find my secret number from 1 to 100 in as few tries as you can.</p>
+    </a>
+    <a class="project" href="rps.html">
+      <div class="icon">✊</div>
+      <h3>Rock Paper Scissors</h3>
+      <p>Play against the computer and keep score.</p>
+    </a>
+    <a class="project" href="calc.html">
+      <div class="icon">🧮</div>
+      <h3>Calculator</h3>
+      <p>A full keypad calculator that works with your keyboard too.</p>
+    </a>
+    <a class="project" href="todo.html">
+      <div class="icon">📝</div>
+      <h3>To-Do List</h3>
+      <p>Add tasks and tick them off. They stay saved after refresh.</p>
+    </a>
+  </div>
+</main>
+
+<footer class="footer">© 2026 Mahanth · Built with HTML, CSS &amp; JavaScript</footer>
 
 </body>
 </html>
