@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,40 +8,175 @@
 </head>
 <body>
 
-<div class="navbar">
-  <a href="index.html">Home</a>
-  <a href="about.html">About</a>
-  <a href="game.html">Game</a>
-  <a href="rps.html">RPS</a>
-  <a href="calc.html">Calculator</a>
-</div>
+<nav class="navbar">
+  <a class="brand" href="index.html">Mahanth</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="game.html">Game</a>
+    <a href="rps.html">RPS</a>
+    <a href="calc.html" class="active">Calculator</a>
+    <a href="todo.html">To-Do</a>
+  </div>
+</nav>
 
-<div class="card">
-  <h1>🧮 Calculator</h1>
-  <input id="a" type="number" placeholder="First number">
-  <input id="b" type="number" placeholder="Second number">
-  <br>
-  <button onclick="calc('+')">+</button>
-  <button onclick="calc('-')">-</button>
-  <button onclick="calc('*')">x</button>
-  <button onclick="calc('/')">/</button>
-  <p class="result" id="answer">Answer: </p>
-</div>
+<main>
+  <section class="card">
+    <h1>🧮 Calculator</h1>
+
+    <div class="calc-display">
+      <div class="calc-expr" id="expr"></div>
+      <div class="calc-value" id="value">0</div>
+    </div>
+
+    <div class="keys">
+      <button class="fn clear" onclick="clearAll()">AC</button>
+      <button class="fn" onclick="backspace()">⌫</button>
+      <button class="fn" onclick="percent()">%</button>
+      <button class="op" onclick="setOp('/')">÷</button>
+
+      <button onclick="digit('7')">7</button>
+      <button onclick="digit('8')">8</button>
+      <button onclick="digit('9')">9</button>
+      <button class="op" onclick="setOp('*')">×</button>
+
+      <button onclick="digit('4')">4</button>
+      <button onclick="digit('5')">5</button>
+      <button onclick="digit('6')">6</button>
+      <button class="op" onclick="setOp('-')">−</button>
+
+      <button onclick="digit('1')">1</button>
+      <button onclick="digit('2')">2</button>
+      <button onclick="digit('3')">3</button>
+      <button class="op" onclick="setOp('+')">+</button>
+
+      <button onclick="toggleSign()">±</button>
+      <button onclick="digit('0')">0</button>
+      <button onclick="digit('.')">.</button>
+      <button class="op" onclick="equals()">=</button>
+    </div>
+
+    <p class="hint">Tip: on a computer you can type with your keyboard.</p>
+  </section>
+</main>
+
+<footer class="footer">© 2026 Mahanth · Built with HTML, CSS &amp; JavaScript</footer>
 
 <script>
-function calc(op) {
-  let a = Number(document.getElementById("a").value);
-  let b = Number(document.getElementById("b").value);
-  let r;
-  if (op === "+") { r = a + b; }
-  else if (op === "-") { r = a - b; }
-  else if (op === "*") { r = a * b; }
-  else { r = b === 0 ? "Cannot divide by zero" : a / b; }
-  document.getElementById("answer").innerText = "Answer: " + r;
-}
-</script>
+const symbols = { "+": "+", "-": "−", "*": "×", "/": "÷" };
+const valueEl = document.getElementById("value");
+const exprEl = document.getElementById("expr");
 
-<div class="footer">© 2026 Mahanth</div>
+let current = "0";   // number on the screen
+let previous = null; // number before the operator
+let operator = null; // + - * /
+let fresh = false;   // true = next digit starts a new number
+
+function render() {
+  valueEl.textContent = current;
+  exprEl.textContent = operator ? previous + " " + symbols[operator] : "";
+}
+
+function digit(d) {
+  if (fresh) {
+    current = d === "." ? "0." : d;
+    fresh = false;
+  } else if (d === ".") {
+    if (!current.includes(".")) current += ".";
+  } else if (current === "0") {
+    current = d;
+  } else if (current.replace(/[-.]/g, "").length < 12) {
+    current += d;
+  }
+  render();
+}
+
+function compute(a, b, op) {
+  a = parseFloat(a);
+  b = parseFloat(b);
+  if (op === "+") return a + b;
+  if (op === "-") return a - b;
+  if (op === "*") return a * b;
+  if (op === "/") return b === 0 ? null : a / b;
+}
+
+// Removes ugly decimals like 0.30000000000000004
+function format(n) {
+  return String(parseFloat(n.toPrecision(12)));
+}
+
+function evaluate() {
+  const r = compute(previous, current, operator);
+  if (r === null) {
+    current = "Can't divide by 0";
+    previous = null;
+    operator = null;
+    fresh = true;
+    render();
+    return false;
+  }
+  current = format(r);
+  return true;
+}
+
+function setOp(op) {
+  if (isNaN(parseFloat(current))) return;
+  if (operator && !fresh) {
+    if (!evaluate()) return;
+  }
+  previous = current;
+  operator = op;
+  fresh = true;
+  render();
+}
+
+function equals() {
+  if (!operator || fresh) return;
+  if (!evaluate()) return;
+  previous = null;
+  operator = null;
+  fresh = true;
+  render();
+}
+
+function clearAll() {
+  current = "0";
+  previous = null;
+  operator = null;
+  fresh = false;
+  render();
+}
+
+function backspace() {
+  if (fresh) return;
+  current = current.slice(0, -1);
+  if (current === "" || current === "-") current = "0";
+  render();
+}
+
+function percent() {
+  if (isNaN(parseFloat(current))) return;
+  current = format(parseFloat(current) / 100);
+  render();
+}
+
+function toggleSign() {
+  if (current === "0" || isNaN(parseFloat(current))) return;
+  current = current.startsWith("-") ? current.slice(1) : "-" + current;
+  render();
+}
+
+// Keyboard support
+document.addEventListener("keydown", function (e) {
+  const k = e.key;
+  if (/^[0-9.]$/.test(k)) digit(k);
+  else if (["+", "-", "*", "/"].includes(k)) setOp(k);
+  else if (k === "Enter" || k === "=") { e.preventDefault(); equals(); }
+  else if (k === "Backspace") backspace();
+  else if (k === "Escape") clearAll();
+  else if (k === "%") percent();
+});
+</script>
 
 </body>
 </html>
