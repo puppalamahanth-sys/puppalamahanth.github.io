@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,22 +8,45 @@
 </head>
 <body>
 
-<div class="navbar">
-  <a href="index.html">Home</a>
-  <a href="about.html">About</a>
-  <a href="game.html">Game</a>
-  <a href="rps.html">RPS</a>
-  <a href="calc.html">Calculator</a>
-  <a href="todo.html">To-Do</a>
-</div>
+<nav class="navbar">
+  <a class="brand" href="index.html">Mahanth</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="about.html" class="active">About</a>
+    <a href="game.html">Game</a>
+    <a href="rps.html">RPS</a>
+    <a href="calc.html">Calculator</a>
+    <a href="todo.html">To-Do</a>
+  </div>
+</nav>
 
-<div class="card">
-  <h1>About Me</h1>
-  <p>I am Mahanth, a first-year ECE student.</p>
-  <p>I want to become an AI engineer. This website is my first step: I am learning to build things with HTML, CSS and JavaScript.</p>
-</div>
+<main>
+  <section class="card">
+    <div class="avatar">👨‍💻</div>
+    <h1>About Me</h1>
+    <p>Hi! I'm Mahanth, a first-year Electronics and Communication Engineering (ECE) student.</p>
+    <p>I want to become an AI engineer. This website is my first step: every page here is something I built while learning HTML, CSS and JavaScript.</p>
+  </section>
 
-<div class="footer">© 2026 Mahanth</div>
+  <section class="card">
+    <h2>What I'm learning</h2>
+    <ul class="list">
+      <li>🌐 <strong>Now:</strong> HTML, CSS and JavaScript</li>
+      <li>🐍 <strong>Next:</strong> Python and programming basics for AI</li>
+      <li>🤖 <strong>Goal:</strong> machine learning and AI engineering</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Find me online</h2>
+    <p>See the code for this website and my other projects.</p>
+    <div class="btn-row">
+      <a class="btn" href="https://github.com/puppalamahanth-sys" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">© 2026 Mahanth · Built with HTML, CSS &amp; JavaScript</footer>
 
 </body>
 </html>
