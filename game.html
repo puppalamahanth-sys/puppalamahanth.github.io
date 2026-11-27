@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,51 +8,110 @@
 </head>
 <body>
 
-<div class="navbar">
-  <a href="index.html">Home</a>
-  <a href="about.html">About</a>
-  <a href="game.html">Game</a>
-  <a href="rps.html">RPS</a>
-  <a href="calc.html">Calculator</a>
-  <a href="todo.html">To-Do</a>
+<nav class="navbar">
+  <a class="brand" href="index.html">Mahanth</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="game.html" class="active">Game</a>
+    <a href="rps.html">RPS</a>
+    <a href="calc.html">Calculator</a>
+    <a href="todo.html">To-Do</a>
   </div>
+</nav>
 
-<div class="card">
-  <h1>🎯 Guess the Number</h1>
-  <p>I am thinking of a number from 1 to 100.</p>
-  <input id="guess" type="number" placeholder="Your guess">
-  <br>
-  <button onclick="check()">Guess</button>
-  <button onclick="newGame()">New game</button>
-  <p class="result" id="result"></p>
-  <p id="tries">Tries: 0</p>
-</div>
+<main>
+  <section class="card">
+    <h1>🎯 Guess the Number</h1>
+    <p>I'm thinking of a number from 1 to 100. Can you find it?</p>
+    <input id="guess" type="number" min="1" max="100" inputmode="numeric" placeholder="Your guess">
+    <div class="btn-row">
+      <button id="guessBtn" onclick="check()">Guess</button>
+      <button class="secondary" onclick="newGame()">New game</button>
+    </div>
+    <p class="result" id="result"></p>
+    <div class="stats">
+      <div class="stat"><strong id="tries">0</strong><span>Tries</span></div>
+      <div class="stat"><strong id="best">–</strong><span>Best score</span></div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">© 2026 Mahanth · Built with HTML, CSS &amp; JavaScript</footer>
 
 <script>
-let secret = Math.floor(Math.random() * 100) + 1;
-let tries = 0;
-function check() {
-  let g = Number(document.getElementById("guess").value);
-  let r = document.getElementById("result");
-  tries++;
-  document.getElementById("tries").innerText = "Tries: " + tries;
-  if (g === secret) {
-    if (tries <= 5) { r.innerText = "Amazing! You won in " + tries + " tries!"; }
-    else { r.innerText = "Correct! You win!"; }
-  }
-  else if (g < secret) { r.innerText = "Too low, try higher."; }
-  else { r.innerText = "Too high, try lower."; }
-}
+const input = document.getElementById("guess");
+const result = document.getElementById("result");
+const guessBtn = document.getElementById("guessBtn");
+
+let secret, tries, gameOver;
+let best = Number(localStorage.getItem("bestScore")) || null;
+
 function newGame() {
   secret = Math.floor(Math.random() * 100) + 1;
   tries = 0;
-  document.getElementById("tries").innerText = "Tries: 0";
-  document.getElementById("result").innerText = "";
-  document.getElementById("guess").value = "";
+  gameOver = false;
+  input.value = "";
+  input.disabled = false;
+  guessBtn.disabled = false;
+  showResult("Make your first guess!", "");
+  updateStats();
 }
-</script>
 
-<div class="footer">© 2026 Mahanth</div>
+function check() {
+  if (gameOver) return;
+
+  const g = parseInt(input.value, 10);
+  if (isNaN(g) || g < 1 || g > 100) {
+    showResult("Enter a whole number from 1 to 100.", "lose");
+    return;
+  }
+
+  tries++;
+
+  if (g === secret) {
+    gameOver = true;
+    input.disabled = true;
+    guessBtn.disabled = true;
+
+    let msg;
+    if (tries === 1) msg = "First try! Incredible! 🤯";
+    else if (tries <= 5) msg = "Amazing! You got it in " + tries + " tries! 🎉";
+    else msg = "Correct! You got it in " + tries + " tries.";
+
+    if (best === null || tries < best) {
+      best = tries;
+      localStorage.setItem("bestScore", best);
+      msg += " New best!";
+    }
+    showResult(msg, "win");
+  } else if (g < secret) {
+    showResult(g + " is too low. Go higher ⬆️", "");
+  } else {
+    showResult(g + " is too high. Go lower ⬇️", "");
+  }
+
+  input.value = "";
+  updateStats();
+}
+
+function showResult(text, type) {
+  result.textContent = text;
+  result.className = "result " + type;
+}
+
+function updateStats() {
+  document.getElementById("tries").textContent = tries;
+  document.getElementById("best").textContent = best === null ? "–" : best;
+}
+
+// Press Enter to guess
+input.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") check();
+});
+
+newGame();
+</script>
 
 </body>
 </html>
