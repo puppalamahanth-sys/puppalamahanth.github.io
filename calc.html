@@ -132,12 +132,15 @@ function setOp(op) {
 
 function equals() {
   if (!operator || fresh) return;
+  const fullExpr = previous + " " + symbols[operator] + " " + current + " =";
   if (!evaluate()) return;
   previous = null;
   operator = null;
   fresh = true;
   render();
+  exprEl.textContent = fullExpr;
 }
+  
 
 function clearAll() {
   current = "0";
