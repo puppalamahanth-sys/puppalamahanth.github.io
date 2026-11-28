@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Highway Dash</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: #111827;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: #fff;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  /* Top score bar */
+  .hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
+    pointer-events: none;
+  }
+  .pill {
+    background: rgba(0, 0, 0, 0.55);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .hud button {
+    pointer-events: auto;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    border: none;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .hud .right { display: flex; gap: 8px; align-items: center; }
+
+  /* Start and game over screens */
+  .screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 24px;
+    text-align: center;
+    background: rgba(17, 24, 39, 0.82);
+    backdrop-filter: blur(4px);
+  }
+  .hidden { display: none; }
+  .logo { font-size: 64px; }
+  h1 { font-size: 40px; font-weight: 800; letter-spacing: 1px; }
+  h1 span { color: #facc15; }
+  .sub { color: #cbd5e1; font-size: 15px; max-width: 300px; line-height: 1.5; }
+  .big-btn {
+    margin-top: 8px;
+    background: #facc15;
+    color: #111827;
+    border: none;
+    padding: 16px 44px;
+    border-radius: 999px;
+    font-size: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #a16207;
+  }
+  .big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #a16207; }
+  .results {
+    display: flex;
+    gap: 12px;
+  }
+  .result-box {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 12px 18px;
+    min-width: 90px;
+  }
+  .result-box strong { display: block; font-size: 26px; }
+  .result-box span { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+  .new-best { color: #facc15; font-weight: 700; font-size: 18px; }
+  .controls { color: #94a3b8; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div class="hud" id="hud">
+  <div class="pill" id="score">0 m</div>
+  <div class="right">
+    <div class="pill" id="coins">🪙 0</div>
+    <button id="soundBtn" aria-label="Sound on or off">🔊</button>
+    <button id="pauseBtn" aria-label="Pause">⏸</button>
+  </div>
+</div>
+
+<div class="screen" id="startScreen">
+  <div class="logo">🏎️</div>
+  <h1>HIGHWAY <span>DASH</span></h1>
+  <p class="sub">Dodge the traffic, grab the coins, and see how far you can drive. It gets faster every second!</p>
+  <button class="big-btn" id="startBtn">PLAY</button>
+  <p class="controls">Tap left or right side of the screen to change lanes<br>Keyboard: ← → or A D</p>
+  <p class="sub" id="bestStart"></p>
+</div>
+
+<div class="screen hidden" id="pauseScreen">
+  <h1>PAUSED</h1>
+  <button class="big-btn" id="resumeBtn">RESUME</button>
+</div>
+
+<div class="screen hidden" id="overScreen">
+  <div class="logo">💥</div>
+  <h1>CRASHED!</h1>
+  <p class="new-best hidden" id="newBest">🏆 New best distance!</p>
+  <div class="results">
+    <div class="result-box"><strong id="finalScore">0</strong><span>Metres</span></div>
+    <div class="result-box"><strong id="finalCoins">0</strong><span>Coins</span></div>
+    <div class="result-box"><strong id="finalBest">0</strong><span>Best</span></div>
+  </div>
+  <button class="big-btn" id="againBtn">PLAY AGAIN</button>
+</div>
+
+<script>
+// ================== Setup ==================
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let W, H, roadW, roadX, laneW, carW, carH;
+
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  roadW = Math.min(W * 0.86, 420);
+  roadX = (W - roadW) / 2;
+  laneW = roadW / 3;
+  carW = laneW * 0.56;
+  carH = carW * 1.8;
+  if (player) {
+    player.y = H - carH - 40;
+    player.x = laneCenter(player.lane);
+  }
+}
+
+function laneCenter(lane) {
+  return roadX + laneW * lane + laneW / 2;
+}
+
+// Safe storage (works even if the browser blocks it)
+function loadBest() {
+  try { return Number(localStorage.getItem("hd_best")) || 0; } catch (e) { return 0; }
+}
+function saveBest(v) {
+  try { localStorage.setItem("hd_best", v); } catch (e) {}
+}
+function loadSound() {
+  try { return localStorage.getItem("hd_sound") !== "off"; } catch (e) { return true; }
+}
+function saveSound(on) {
+  try { localStorage.setItem("hd_sound", on ? "on" : "off"); } catch (e) {}
+}
+
+// ================== Sound (made with code, no files needed) ==================
+let audioCtx = null;
+let soundOn = loadSound();
+
+function beep(freq, duration, type, volume) {
+  if (!soundOn) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type || "square";
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(volume || 0.08, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch (e) {}
+}
+const sfx = {
+  move: () => beep(420, 0.06, "triangle", 0.05),
+  coin: () => { beep(880, 0.08, "square", 0.06); setTimeout(() => beep(1320, 0.1, "square", 0.06), 70); },
+  crash: () => { beep(120, 0.5, "sawtooth", 0.15); beep(80, 0.6, "square", 0.1); },
+  start: () => { beep(523, 0.1); setTimeout(() => beep(659, 0.1), 100); setTimeout(() => beep(784, 0.15), 200); }
+};
+
+// ================== Game state ==================
+const CAR_COLORS = ["#3b82f6", "#22c55e", "#a855f7", "#f97316", "#06b6d4", "#e5e7eb", "#ec4899"];
+let player = null;
+let traffic, coins, particles, trees;
+let speed, distance, coinCount, roadOffset, spawnGap, shake, lastRowDouble;
+let state = "start"; // start | playing | paused | crashing | over
+let best = loadBest();
+let lastTime = 0;
+
+function newGame() {
+  player = { lane: 1, x: 0, y: 0, tilt: 0 };
+  resize();
+  player.x = laneCenter(1);
+  traffic = [];
+  coins = [];
+  particles = [];
+  trees = [];
+  for (let i = 0; i < 10; i++) addTree(Math.random() * H);
+  speed = 320;
+  distance = 0;
+  coinCount = 0;
+  roadOffset = 0;
+  spawnGap = carH * 2;
+  shake = 0;
+  lastRowDouble = false;
+  updateHud();
+}
+
+function addTree(y) {
+  const left = Math.random() < 0.5;
+  const side = left ? roadX : W - roadX;
+  if (side < 24) return; // no space on very narrow screens
+  const x = left ? Math.random() * (roadX - 24) + 12 : W - roadX + 12 + Math.random() * (roadX - 24);
+  trees.push({ x: x, y: y, r: 10 + Math.random() * 10 });
+}
+
+// Spawns one row of traffic. Always leaves at least one lane open.
+function spawnRow() {
+  const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
+  // Two cars side by side after 600 m, but never two such rows in a row (always escapable)
+  const blocked = distance > 600 && !lastRowDouble && Math.random() < 0.45 ? 2 : 1;
+  lastRowDouble = blocked === 2;
+  for (let i = 0; i < blocked; i++) {
+    traffic.push({
+      lane: lanes[i],
+      x: laneCenter(lanes[i]),
+      y: -carH - Math.random() * 30,
+      color: CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)],
+      truck: Math.random() < 0.2
+    });
+  }
+  // Put a coin in an open lane sometimes
+  if (Math.random() < 0.6) {
+    const free = lanes[blocked];
+    for (let k = 0; k < 3; k++) {
+      coins.push({ x: laneCenter(free), y: -carH - k * 45, spin: Math.random() * 6 });
+    }
+  }
+}
+
+function moveLane(dir) {
+  if (state !== "playing") return;
+  const next = player.lane + dir;
+  if (next < 0 || next > 2) return;
+  player.lane = next;
+  player.tilt = dir * 0.18;
+  sfx.move();
+}
+
+// ================== Update ==================
+function update(dt) {
+  if (state === "playing") {
+    speed = Math.min(speed + 9 * dt, 950);
+    distance += speed * dt / 10;
+
+    // Spawn traffic rows based on distance travelled
+    // (measured in traffic movement, so rows never get too close to pass)
+    spawnGap -= speed * 0.55 * dt;
+    if (spawnGap <= 0) {
+      spawnRow();
+      spawnGap = carH * 3.2 + Math.random() * carH * 1.5;
+    }
+  }
+
+  const moving = state === "playing" || state === "crashing";
+  const vy = state === "crashing" ? speed * 0.2 : speed;
+
+  if (moving) {
+    roadOffset = (roadOffset + vy * dt) % 60;
+
+    // Smooth lane change
+    player.x += (laneCenter(player.lane) - player.x) * Math.min(1, dt * 14);
+    player.tilt *= 0.85;
+
+    // Traffic drives slower than you, so it comes toward you on screen
+    for (const t of traffic) t.y += vy * 0.55 * dt;
+    traffic = traffic.filter(t => t.y < H + carH * 2);
+
+    for (const c of coins) { c.y += vy * dt; c.spin += dt * 6; }
+    coins = coins.filter(c => c.y < H + 40);
+
+    for (const tr of trees) tr.y += vy * dt;
+    trees = trees.filter(tr => tr.y < H + 40);
+    if (Math.random() < vy * dt / 90) addTree(-30);
+  }
+
+  if (state === "playing") {
+    const px = player.x - carW / 2 + carW * 0.12;
+    const pw = carW * 0.76;
+    const py = player.y + carH * 0.08;
+    const ph = carH * 0.84;
+
+    // Crash check
+    for (const t of traffic) {
+      const h = t.truck ? carH * 1.4 : carH;
+      if (px < t.x + carW / 2 - carW * 0.1 && px + pw > t.x - carW / 2 + carW * 0.1 &&
+          py < t.y + h * 0.95 && py + ph > t.y + h * 0.05) {
+        crash();
+        break;
+      }
+    }
+
+    // Coin pickup
+    coins = coins.filter(c => {
+      const hit = Math.abs(c.x - player.x) < carW * 0.7 && c.y > player.y - 12 && c.y < player.y + carH + 12;
+      if (hit) {
+        coinCount++;
+        sfx.coin();
+        for (let i = 0; i < 6; i++) particles.push(makeParticle(c.x, c.y, "#facc15", 120));
+      }
+      return !hit;
+    });
+
+    updateHud();
+  }
+
+  // Particles
+  for (const p of particles) {
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.life -= dt;
+  }
+  particles = particles.filter(p => p.life > 0);
+  shake = Math.max(0, shake - dt * 20);
+}
+
+function makeParticle(x, y, color, power) {
+  const a = Math.random() * Math.PI * 2;
+  const s = Math.random() * power + 40;
+  return { x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.4 + Math.random() * 0.4, color: color, size: 3 + Math.random() * 4 };
+}
+
+function crash() {
+  state = "crashing";
+  shake = 14;
+  sfx.crash();
+  if (navigator.vibrate) navigator.vibrate(200);
+  const cx = player.x, cy = player.y + carH / 2;
+  for (let i = 0; i < 40; i++) {
+    const colors = ["#f97316", "#facc15", "#ef4444", "#6b7280"];
+    particles.push(makeParticle(cx, cy, colors[i % 4], 320));
+  }
+  setTimeout(gameOver, 900);
+}
+
+function gameOver() {
+  state = "over";
+  const score = Math.floor(distance);
+  const isBest = score > best;
+  if (isBest) { best = score; saveBest(best); }
+  document.getElementById("finalScore").textContent = score;
+  document.getElementById("finalCoins").textContent = coinCount;
+  document.getElementById("finalBest").textContent = best;
+  document.getElementById("newBest").classList.toggle("hidden", !isBest);
+  show("overScreen");
+}
+
+// ================== Drawing ==================
+function draw() {
+  ctx.save();
+  if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+
+  // Grass
+  ctx.fillStyle = "#166534";
+  ctx.fillRect(-20, -20, W + 40, H + 40);
+
+  // Trees
+  for (const tr of trees) {
+    ctx.fillStyle = "#14532d";
+    ctx.beginPath(); ctx.arc(tr.x + 3, tr.y + 4, tr.r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#22c55e";
+    ctx.beginPath(); ctx.arc(tr.x, tr.y, tr.r, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Road and edges
+  ctx.fillStyle = "#374151";
+  ctx.fillRect(roadX, -20, roadW, H + 40);
+  ctx.fillStyle = "#f8fafc";
+  for (let y = -60 + roadOffset; y < H + 60; y += 60) {
+    ctx.fillStyle = (Math.floor((y - roadOffset) / 60) % 2 === 0) ? "#ef4444" : "#f8fafc";
+    ctx.fillRect(roadX - 8, y, 8, 30);
+    ctx.fillRect(roadX + roadW, y, 8, 30);
+    ctx.fillStyle = (Math.floor((y - roadOffset) / 60) % 2 === 0) ? "#f8fafc" : "#ef4444";
+    ctx.fillRect(roadX - 8, y + 30, 8, 30);
+    ctx.fillRect(roadX + roadW, y + 30, 8, 30);
+  }
+
+  // Lane lines
+  ctx.fillStyle = "rgba(255,255,255,0.75)";
+  for (let l = 1; l < 3; l++) {
+    const x = roadX + laneW * l - 2;
+    for (let y = -60 + roadOffset; y < H + 60; y += 60) ctx.fillRect(x, y, 4, 32);
+  }
+
+  // Coins
+  for (const c of coins) {
+    const w = Math.abs(Math.cos(c.spin)) * 11 + 2;
+    ctx.fillStyle = "#a16207";
+    ctx.beginPath(); ctx.ellipse(c.x, c.y + 2, w, 12, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#facc15";
+    ctx.beginPath(); ctx.ellipse(c.x, c.y, w, 12, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Traffic
+  for (const t of traffic) {
+    if (t.truck) drawTruck(t.x, t.y, t.color);
+    else drawCar(t.x, t.y, t.color, false, 0);
+  }
+
+  // Player
+  if (state !== "crashing" && state !== "over") {
+    drawCar(player.x, player.y, "#ef4444", true, player.tilt);
+  }
+
+  // Particles
+  for (const p of particles) {
+    ctx.globalAlpha = Math.max(0, p.life * 1.6);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// Draws a car from above. x = centre, y = top.
+function drawCar(x, y, color, isPlayer, tilt) {
+  const w = carW, h = carH;
+  ctx.save();
+  ctx.translate(x, y + h / 2);
+  ctx.rotate(tilt);
+  ctx.translate(-w / 2, -h / 2);
+
+  // Shadow
+  ctx.fillStyle = "rgba(0,0,0,0.3)";
+  roundRect(4, 6, w, h, w * 0.25); ctx.fill();
+
+  // Wheels
+  ctx.fillStyle = "#111";
+  const ww = w * 0.16, wh = h * 0.18;
+  ctx.fillRect(-ww * 0.4, h * 0.14, ww, wh);
+  ctx.fillRect(w - ww * 0.6, h * 0.14, ww, wh);
+  ctx.fillRect(-ww * 0.4, h * 0.68, ww, wh);
+  ctx.fillRect(w - ww * 0.6, h * 0.68, ww, wh);
+
+  // Body
+  ctx.fillStyle = color;
+  roundRect(0, 0, w, h, w * 0.28); ctx.fill();
+
+  // Windows (player faces up, traffic faces up too but we see their back)
+  ctx.fillStyle = "#1e293b";
+  roundRect(w * 0.15, h * 0.2, w * 0.7, h * 0.2, 5); ctx.fill();
+  roundRect(w * 0.18, h * 0.62, w * 0.64, h * 0.14, 5); ctx.fill();
+
+  // Roof shine
+  ctx.fillStyle = "rgba(255,255,255,0.18)";
+  roundRect(w * 0.2, h * 0.42, w * 0.6, h * 0.18, 4); ctx.fill();
+
+  if (isPlayer) {
+    // Racing stripe and headlights
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(w * 0.44, 2, w * 0.12, h * 0.18);
+    ctx.fillRect(w * 0.44, h * 0.78, w * 0.12, h * 0.2);
+    ctx.fillStyle = "#fef08a";
+    ctx.fillRect(w * 0.1, 0, w * 0.2, 4);
+    ctx.fillRect(w * 0.7, 0, w * 0.2, 4);
+  } else {
+    // Brake lights
+    ctx.fillStyle = "#dc2626";
+    ctx.fillRect(w * 0.1, h - 4, w * 0.22, 4);
+    ctx.fillRect(w * 0.68, h - 4, w * 0.22, 4);
+  }
+  ctx.restore();
+}
+
+function drawTruck(x, y, color) {
+  const w = carW * 1.05, h = carH * 1.4;
+  const left = x - w / 2;
+  ctx.fillStyle = "rgba(0,0,0,0.3)";
+  roundRect(left + 4, y + 6, w, h, 8); ctx.fill();
+  // Cab
+  ctx.fillStyle = color;
+  roundRect(left + w * 0.08, y + h * 0.72, w * 0.84, h * 0.28, 8); ctx.fill();
+  ctx.fillStyle = "#1e293b";
+  roundRect(left + w * 0.18, y + h * 0.75, w * 0.64, h * 0.08, 4); ctx.fill();
+  // Cargo box
+  ctx.fillStyle = "#e2e8f0";
+  roundRect(left, y, w, h * 0.7, 6); ctx.fill();
+  ctx.fillStyle = "#cbd5e1";
+  for (let i = 1; i < 4; i++) ctx.fillRect(left + 4, y + (h * 0.7 / 4) * i, w - 8, 2);
+  ctx.fillStyle = "#dc2626";
+  ctx.fillRect(left + 3, y + h - 4, w * 0.2, 4);
+  ctx.fillRect(left + w * 0.77, y + h - 4, w * 0.2, 4);
+}
+
+// ================== HUD and screens ==================
+function updateHud() {
+  document.getElementById("score").textContent = Math.floor(distance) + " m";
+  document.getElementById("coins").textContent = "🪙 " + coinCount;
+}
+
+function show(id) {
+  for (const s of ["startScreen", "pauseScreen", "overScreen"]) {
+    document.getElementById(s).classList.toggle("hidden", s !== id);
+  }
+  document.getElementById("hud").style.visibility = id === "startScreen" ? "hidden" : "visible";
+}
+
+function start() {
+  newGame();
+  state = "playing";
+  show(null);
+  sfx.start();
+}
+
+function pause() {
+  if (state !== "playing") return;
+  state = "paused";
+  show("pauseScreen");
+}
+
+function resume() {
+  if (state !== "paused") return;
+  state = "playing";
+  show(null);
+  lastTime = performance.now();
+}
+
+// ================== Controls ==================
+canvas.addEventListener("pointerdown", function (e) {
+  if (state !== "playing") return;
+  moveLane(e.clientX < W / 2 ? -1 : 1);
+});
+
+document.addEventListener("keydown", function (e) {
+  const k = e.key.toLowerCase();
+  if (k === "arrowleft" || k === "a") moveLane(-1);
+  else if (k === "arrowright" || k === "d") moveLane(1);
+  else if (k === "p" || k === "escape") state === "paused" ? resume() : pause();
+  else if ((k === " " || k === "enter") && (state === "start" || state === "over")) start();
+});
+
+document.getElementById("startBtn").onclick = start;
+document.getElementById("againBtn").onclick = start;
+document.getElementById("resumeBtn").onclick = resume;
+document.getElementById("pauseBtn").onclick = pause;
+
+const soundBtn = document.getElementById("soundBtn");
+soundBtn.textContent = soundOn ? "🔊" : "🔇";
+soundBtn.onclick = function () {
+  soundOn = !soundOn;
+  saveSound(soundOn);
+  soundBtn.textContent = soundOn ? "🔊" : "🔇";
+};
+
+// Pause automatically when the player leaves the app
+document.addEventListener("visibilitychange", function () {
+  if (document.hidden) pause();
+});
+
+window.addEventListener("resize", resize);
+
+// ================== Main loop ==================
+function loop(now) {
+  const dt = Math.min((now - lastTime) / 1000, 0.05);
+  lastTime = now;
+  if (state !== "paused") update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+document.getElementById("bestStart").textContent = best ? "🏆 Best: " + best + " m" : "";
+newGame();
+show("startScreen");
+requestAnimationFrame(function (t) { lastTime = t; loop(t); });
+</script>
+</body>
+  </html>
+  
