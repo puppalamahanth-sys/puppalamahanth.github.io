@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Visualizer | Mahanth</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .panel {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+    canvas.wave-canvas {
+      width: 100%;
+      height: 220px;
+      display: block;
+      border-radius: 12px;
+      background: #0f172a;
+    }
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 14px;
+    }
+    .control-top {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+    }
+    .wave-types, .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .chip-btn {
+      border: 1px solid rgba(128, 128, 128, 0.35);
+      background: transparent;
+      color: inherit;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .chip-btn.active {
+      background: #4f46e5;
+      color: #fff;
+      border-color: #4f46e5;
+    }
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 12px;
+      font-size: 13px;
+      opacity: 0.9;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a class="brand" href="index.html">Mahanth</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="game.html">Game</a>
+      <a href="rps.html">RPS</a>
+      <a href="calc.html">Calculator</a>
+      <a href="todo.html">To-Do</a>
+      <a href="highway.html">Highway</a>
+      <a href="signals.html" class="active">Signals</a>
+    </div>
+  </nav>
+
+  <main class="wide">
+    <section class="panel">
+      <h1 style="margin-top: 0;">Signal & Wave Visualizer</h1>
+      <p style="margin-bottom: 12px;">Explore waveform shapes, frequency, amplitude, and sensor noise in real time.</p>
+
+      <canvas id="waveCanvas" class="wave-canvas"></canvas>
+
+      <div class="stats">
+        <span id="statType">Wave: Sine</span>
+        <span id="statFreq">Freq: 2.0 Hz</span>
+        <span id="statAmp">Amp: 1.0 V</span>
+      </div>
+
+      <div class="wave-types" role="group" aria-label="Waveform type">
+        <button type="button" class="chip-btn active" data-wave="sine">Sine</button>
+        <button type="button" class="chip-btn" data-wave="square">Square</button>
+        <button type="button" class="chip-btn" data-wave="triangle">Triangle</button>
+        <button type="button" class="chip-btn" data-wave="noisy">Sine + Noise</button>
+      </div>
+
+      <div class="controls-grid">
+        <label class="control-row">
+          <span class="control-top"><span>Frequency</span><span id="freqVal">2.0 Hz</span></span>
+          <input id="freqSlider" type="range" min="0.5" max="8" step="0.5" value="2">
+        </label>
+
+        <label class="control-row">
+          <span class="control-top"><span>Amplitude</span><span id="ampVal">1.0 V</span></span>
+          <input id="ampSlider" type="range" min="0.2" max="2.0" step="0.1" value="1.0">
+        </label>
+
+        <label class="control-row">
+          <span class="control-top"><span>Noise Level</span><span id="noiseVal">0.15</span></span>
+          <input id="noiseSlider" type="range" min="0" max="0.8" step="0.05" value="0.15">
+        </label>
+      </div>
+
+      <div class="presets">
+        <button type="button" class="chip-btn" id="presetClean">Clean Sine</button>
+        <button type="button" class="chip-btn" id="presetNoisy">Noisy Sensor</button>
+        <button type="button" class="chip-btn" id="togglePlay">Pause</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2026 Mahanth &middot; Built with HTML, CSS &amp; JavaScript</p>
+  </footer>
+
+  <script>
+    const canvas = document.getElementById("waveCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const freqSlider = document.getElementById("freqSlider");
+    const ampSlider = document.getElementById("ampSlider");
+    const noiseSlider = document.getElementById("noiseSlider");
+
+    const freqVal = document.getElementById("freqVal");
+    const ampVal = document.getElementById("ampVal");
+    const noiseVal = document.getElementById("noiseVal");
+
+    const statType = document.getElementById("statType");
+    const statFreq = document.getElementById("statFreq");
+    const statAmp = document.getElementById("statAmp");
+
+    const waveButtons = document.querySelectorAll("[data-wave]");
+    const togglePlayBtn = document.getElementById("togglePlay");
+
+    let waveType = "sine";
+    let phase = 0;
+    let playing = true;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function sampleWave(t, freq, amp, noise) {
+      const angle = 2 * Math.PI * freq * t + phase;
+      let y = 0;
+      if (waveType === "sine" || waveType === "noisy") {
+        y = Math.sin(angle);
+      } else if (waveType === "square") {
+        y = Math.sin(angle) >= 0 ? 1 : -1;
+      } else if (waveType === "triangle") {
+        y = (2 / Math.PI) * Math.asin(Math.sin(angle));
+      }
+      const activeNoise = waveType === "noisy" ? Math.max(noise, 0.25) : noise;
+      const jitter = activeNoise > 0 ? (Math.random() * 2 - 1) * activeNoise : 0;
+      return (y + jitter) * amp;
+    }
+
+    function updateLabels() {
+      const f = parseFloat(freqSlider.value).toFixed(1);
+      const a = parseFloat(ampSlider.value).toFixed(1);
+      const n = parseFloat(noiseSlider.value).toFixed(2);
+      freqVal.textContent = `${f} Hz`;
+      ampVal.textContent = `${a} V`;
+      noiseVal.textContent = n;
+
+      const names = {
+        sine: "Sine",
+        square: "Square",
+        triangle: "Triangle",
+        noisy: "Sine + Noise"
+      };
+      statType.textContent = `Wave: ${names[waveType]}`;
+      statFreq.textContent = `Freq: ${f} Hz`;
+      statAmp.textContent = `Amp: ${a} V`;
+    }
+
+    function draw() {
+      const width = canvas.clientWidth || 440;
+      const height = canvas.clientHeight || 220;
+      const midY = height / 2;
+      const scaleY = (height * 0.36) / 2.0;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Center axis & subtle grid
+      ctx.strokeStyle = "rgba(148, 163, 184, 0.18)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.moveTo(0, midY);
+      ctx.lineTo(width, midY);
+      ctx.stroke();
+
+      // Waveform
+      const freq = parseFloat(freqSlider.value);
+      const amp = parseFloat(ampSlider.value);
+      const noise = parseFloat(noiseSlider.value);
+
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+
+      for (let x = 0; x <= width; x += 2) {
+        const t = x / width;
+        const val = sampleWave(t, freq, amp, noise);
+        const y = midY - val * scaleY;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      if (playing) {
+        phase -= 0.04;
+      }
+      requestAnimationFrame(draw);
+    }
+
+    waveButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        waveButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        waveType = btn.dataset.wave;
+        updateLabels();
+      });
+    });
+
+    [freqSlider, ampSlider, noiseSlider].forEach((input) => {
+      input.addEventListener("input", updateLabels);
+    });
+
+    document.getElementById("presetClean").addEventListener("click", () => {
+      waveType = "sine";
+      waveButtons.forEach((b) => b.classList.toggle("active", b.dataset.wave === "sine"));
+      freqSlider.value = "2.0";
+      ampSlider.value = "1.0";
+      noiseSlider.value = "0.00";
+      updateLabels();
+    });
+
+    document.getElementById("presetNoisy").addEventListener("click", () => {
+      waveType = "noisy";
+      waveButtons.forEach((b) => b.classList.toggle("active", b.dataset.wave === "noisy"));
+      freqSlider.value = "3.0";
+      ampSlider.value = "1.2";
+      noiseSlider.value = "0.45";
+      updateLabels();
+    });
+
+    togglePlayBtn.addEventListener("click", () => {
+      playing = !playing;
+      togglePlayBtn.textContent = playing ? "Pause" : "Play";
+    });
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+    updateLabels();
+    draw();
+  </script>
+</body>
+  </html>
+  
