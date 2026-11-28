@@ -57,8 +57,10 @@ body {
   top: 0;
   z-index: 10;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 8px;
   padding: 10px 16px;
   background: var(--nav);
   backdrop-filter: blur(10px);
@@ -73,12 +75,10 @@ body {
 }
 .nav-links {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
-  margin-left: auto;
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
+
 .nav-links::-webkit-scrollbar { display: none; }
 .nav-links a {
   color: #fff;
