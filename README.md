@@ -15,6 +15,7 @@ Built by **Mahanth**, a first-year ECE student learning to become an AI engineer
 | `calc.html` | Keypad calculator with keyboard support |
 | `todo.html` | To-do list saved in the browser |
 | `highway.html` | Endless arcade highway racer with sound effects |
+| `signals.html` | Signal Visualizer — Interactive sine, square, triangle, and noisy wave plotter |
 | `style.css` | One shared stylesheet for every page |
 
 ## Features
@@ -22,4 +23,4 @@ Built by **Mahanth**, a first-year ECE student learning to become an AI engineer
 * Automatic dark mode (`prefers-color-scheme`)
 * Tasks and high scores saved with `localStorage`
 * Input validation so the apps never break on bad input
-* 
+  
